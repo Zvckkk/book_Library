@@ -1,26 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-
 class BookCard extends StatelessWidget {
   final String title;
-  final String rating;
-  final String author;
+  final double rating;
+  final String? author;
   final String thumbnailUrl;
-  final String websiteUrl; // Add the website URL
-  final Function launchUrl;
-  BookCard({
+  final String websiteUrl;
+   // Add the website URL
+  // final Function launchUrl;
+  const BookCard({
+    super.key,
     required this.title,
     required this.author,
     required this.rating,
     required this.thumbnailUrl,
     required this.websiteUrl,
-    required this.launchUrl,
+    // required this.launchUrl,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: 22, vertical: 10),
+      margin: const EdgeInsets.symmetric(horizontal: 22, vertical: 10),
       width: MediaQuery.of(context).size.width,
       height: 180,
       decoration: BoxDecoration(
@@ -29,7 +30,7 @@ class BookCard extends StatelessWidget {
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.6),
-            offset: Offset(
+            offset: const Offset(
               0.0,
               10.0,
             ),
@@ -49,11 +50,12 @@ class BookCard extends StatelessWidget {
       child: Stack(
         children: [
           Align(
+            alignment: Alignment.center,
             child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 5.0),
+              padding: const EdgeInsets.symmetric(horizontal: 5.0),
               child: Text(
                 title,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 19,
                 ),
                 overflow: TextOverflow.ellipsis,
@@ -61,74 +63,78 @@ class BookCard extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
             ),
-            alignment: Alignment.center,
           ),
           Align(
+            alignment: Alignment.bottomLeft,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Container(
-                  padding: EdgeInsets.all(5),
-                  margin: EdgeInsets.all(10),
+                  padding: const EdgeInsets.all(5),
+                  margin: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
                     color: Colors.black.withOpacity(0.4),
                     borderRadius: BorderRadius.circular(15),
                   ),
                   child: Row(
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.star,
                         color: Colors.yellow,
                         size: 18,
                       ),
-                      SizedBox(width: 7),
-                      Text(rating),
+                      const SizedBox(width: 7),
+                      Text(rating.toString()),
                     ],
                   ),
                 ),
                 Container(
-                  padding: EdgeInsets.all(5),
-                  margin: EdgeInsets.all(10),
+                  padding: const EdgeInsets.all(5),
+                  margin: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
                     color: Colors.black.withOpacity(0.4),
                     borderRadius: BorderRadius.circular(15),
                   ),
                   child: Row(
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.person_outline,
                         color: Colors.yellow,
                         size: 18,
                       ),
-                      SizedBox(width: 7),
-                      Text(author),
+                      const SizedBox(width: 7),
+                      Text(author ?? "no author"),
                     ],
                   ),
                 )
               ],
             ),
-            alignment: Alignment.bottomLeft,
           ),
           Align(
+            alignment: Alignment.topRight,
             child: ElevatedButton(
               onPressed: () {
-                launchUrl(websiteUrl);
+                launchUrl(Uri.parse(websiteUrl));
               },
-              child: Text('Visit Website'),
+              child: const Text('Visit Website'),
             ),
-            alignment: Alignment.topRight,
           ),
+          Align(
+            alignment: Alignment.topLeft,
+            child: ElevatedButton(
+              onPressed: (){
+                showDialog(
+                  context: context, 
+                  builder: (context) => const AlertDialog(
+                    title: Text('Successfully Added!'),
+                    content: Text('Check your cart'),
+                  ));
+              },
+              child: const Icon(Icons.bookmark),
+            ),
+          )
         ],
       ),
     );
-  }
-
-  // Function to launch the website URL
-  Future<void> _launchURL(String url) async {
-    if (await canLaunch(url)) {
-      await launch(url);
-    } else {
-      throw 'Could not launch $url';
-    }
   }
 }
