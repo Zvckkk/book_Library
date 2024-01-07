@@ -1,22 +1,74 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
-class BookCard extends StatelessWidget {
+import 'dart:convert';
+
+class BookCard extends StatefulWidget {
   final String title;
-  final double rating;
+  final num rating;
   final String? author;
   final String thumbnailUrl;
   final String websiteUrl;
-   // Add the website URL
-  // final Function launchUrl;
-  const BookCard({
-    super.key,
-    required this.title,
-    required this.author,
-    required this.rating,
-    required this.thumbnailUrl,
-    required this.websiteUrl,
-    // required this.launchUrl,
-  });
+  final String bookId;
+  final VoidCallback? onBookmark;
+
+  const BookCard(
+      {Key? key,
+      required this.title,
+      required this.author,
+      required this.rating,
+      required this.thumbnailUrl,
+      required this.websiteUrl,
+      required this.bookId,
+      this.onBookmark})
+      : super(key: key);
+
+  @override
+  State<BookCard> createState() => _BookCardState();
+}
+
+class _BookCardState extends State<BookCard> {
+  bool bookmarked = false;
+
+  @override
+  void initState() {
+    super.initState();
+    checkBookmarked();
+  }
+
+  void checkBookmarked() async {
+    print('check bookmarks');
+    final prefs = await SharedPreferences.getInstance();
+    String bookmarkData = prefs.getString('bookmarks') ?? "{}";
+    Map<String, dynamic> bookmarks = jsonDecode(bookmarkData);
+
+    setState(() {
+      bookmarked = bookmarks[widget.bookId] != null;
+    });
+  }
+
+  Future<void> _saveToBookmarks() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    print("testing");
+    print(prefs.getString('bookmarks'));
+    String bookmarkData = prefs.getString('bookmarks') ?? "{}";
+    Map<String, dynamic> bookmarks = jsonDecode(bookmarkData);
+
+    if (bookmarks[widget.bookId] == null) {
+      bookmarks[widget.bookId] = {
+        'name': widget.title,
+        'author': widget.author,
+        'cover': widget.thumbnailUrl,
+        'votes': widget.rating,
+        'url': widget.websiteUrl,
+        'book_id': widget.bookId
+      };
+    } else {
+      bookmarks.remove(widget.bookId);
+    }
+
+    prefs.setString('bookmarks', jsonEncode(bookmarks));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +95,7 @@ class BookCard extends StatelessWidget {
             Colors.black.withOpacity(0.35),
             BlendMode.multiply,
           ),
-          image: NetworkImage(thumbnailUrl),
+          image: NetworkImage(widget.thumbnailUrl),
           fit: BoxFit.cover,
         ),
       ),
@@ -54,7 +106,7 @@ class BookCard extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 5.0),
               child: Text(
-                title,
+                widget.title,
                 style: const TextStyle(
                   fontSize: 19,
                 ),
@@ -84,7 +136,7 @@ class BookCard extends StatelessWidget {
                         size: 18,
                       ),
                       const SizedBox(width: 7),
-                      Text(rating.toString()),
+                      Text(widget.rating.toString()),
                     ],
                   ),
                 ),
@@ -103,7 +155,7 @@ class BookCard extends StatelessWidget {
                         size: 18,
                       ),
                       const SizedBox(width: 7),
-                      Text(author ?? "no author"),
+                      Text(widget.author ?? "no author"),
                     ],
                   ),
                 )
@@ -114,23 +166,24 @@ class BookCard extends StatelessWidget {
             alignment: Alignment.topRight,
             child: ElevatedButton(
               onPressed: () {
-                launchUrl(Uri.parse(websiteUrl));
+                launchUrl(Uri.parse(widget.websiteUrl));
               },
-              child: const Text('Visit Website'),
+              child: const Text('Visit BookStore'),
             ),
           ),
           Align(
             alignment: Alignment.topLeft,
             child: ElevatedButton(
-              onPressed: (){
-                showDialog(
-                  context: context, 
-                  builder: (context) => const AlertDialog(
-                    title: Text('Successfully Added!'),
-                    content: Text('Check your cart'),
-                  ));
+              onPressed: () async {
+                await _saveToBookmarks();
+                checkBookmarked();
+                final onBookmark = widget.onBookmark;
+                if (onBookmark != null) onBookmark();
               },
-              child: const Icon(Icons.bookmark),
+              child: Icon(
+                Icons.bookmark,
+                color: bookmarked ? Colors.blue : Colors.black,
+              ),
             ),
           )
         ],

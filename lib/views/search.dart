@@ -69,11 +69,13 @@ class _searchState extends State<search> {
               itemBuilder: (context, index) {
                 final book = books[index];
                 return BookCard(
-                    title: book.name,
-                    author: book.author,
-                    rating: book.votes,
-                    thumbnailUrl: book.cover,
-                    websiteUrl: book.url);
+                  title: book.name,
+                  author: book.authors,
+                  rating: book.votes,
+                  thumbnailUrl: book.cover,
+                  websiteUrl: book.url,
+                  bookId: book.bookID.toString(),
+                );
               }),
         )
       ],
